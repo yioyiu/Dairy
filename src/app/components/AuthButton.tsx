@@ -48,7 +48,7 @@ export function AuthButton() {
     // 监听认证状态变化
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event: any, session) => {
       if (mountedRef.current) {
         setUser(session?.user ?? null)
         setLoading(false)
