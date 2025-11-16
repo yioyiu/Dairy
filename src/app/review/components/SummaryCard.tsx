@@ -22,7 +22,7 @@ export function SummaryCard({ summary, loading }: SummaryCardProps) {
 
   return (
     <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
-      <h2 className="text-2xl font-bold mb-4">📊 本月学习总结</h2>
+      <h2 className="text-2xl font-bold mb-4">本月学习总结</h2>
 
       {/* 整体概述 */}
       <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">

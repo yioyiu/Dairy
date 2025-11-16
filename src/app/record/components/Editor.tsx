@@ -8,10 +8,11 @@ import { isSameDay } from '@/lib/date'
 
 interface EditorProps {
   date: string
-  onSave?: () => void // 保存后回调，用于刷新日历
+  onSave?: (record?: DailyRecord | null) => void // 保存后回调，用于刷新日历和更新缓存
+  cachedRecord?: DailyRecord | null // 缓存的记录，用于立即显示
 }
 
-export function Editor({ date, onSave }: EditorProps) {
+export function Editor({ date, onSave, cachedRecord }: EditorProps) {
   const [content, setContent] = useState('')
   const [saving, setSaving] = useState(false)
   const [currentRecord, setCurrentRecord] = useState<DailyRecord | null>(null)
@@ -21,30 +22,43 @@ export function Editor({ date, onSave }: EditorProps) {
 
   // 加载已有记录
   useEffect(() => {
-    // 先清空之前的内容和记录
-    setContent('')
-    setCurrentRecord(null)
-    setError(null)
-    setShowPreview(false) // 切换日期时重置预览状态
+    // 如果有缓存的记录，立即使用它（避免空白闪烁）
+    if (cachedRecord && cachedRecord.date === date) {
+      setContent(cachedRecord.content)
+      setCurrentRecord(cachedRecord)
+      setError(null)
+      setShowPreview(false)
+    } else {
+      // 如果没有缓存，先尝试从 localStorage 恢复草稿
+      const draft = localStorage.getItem(`draft-${date}`)
+      if (draft) {
+        setContent(draft)
+      } else {
+        setContent('')
+      }
+      setCurrentRecord(null)
+      setError(null)
+      setShowPreview(false)
+    }
 
+    // 然后异步加载最新数据（确保数据是最新的）
     async function loadRecord() {
       try {
         const record = await getRecord(date)
         if (record) {
           setContent(record.content)
           setCurrentRecord(record)
-          setError(null) // 清除之前的错误
+          setError(null)
         } else {
-          // 尝试从 localStorage 恢复草稿
+          // 如果没有记录，检查是否有草稿
           const draft = localStorage.getItem(`draft-${date}`)
           if (draft) {
             setContent(draft)
           } else {
-            // 确保如果没有记录也没有草稿，内容为空
             setContent('')
           }
-          setCurrentRecord(null) // 确保没有记录时清空
-          setError(null) // 清除之前的错误
+          setCurrentRecord(null)
+          setError(null)
         }
       } catch (error: any) {
         // 如果是认证错误，显示给用户
@@ -52,16 +66,13 @@ export function Editor({ date, onSave }: EditorProps) {
           setError('未登录，请先登录')
         } else {
           console.error('Failed to load record:', error)
-          // 其他错误不显示，只记录
         }
-        // 出错时也确保清空内容
-        setContent('')
-        setCurrentRecord(null)
+        // 出错时不清空已有内容（可能是缓存或草稿）
       }
     }
 
     loadRecord()
-  }, [date])
+  }, [date, cachedRecord])
 
   // 自动保存草稿到 localStorage
   useEffect(() => {
@@ -107,12 +118,12 @@ export function Editor({ date, onSave }: EditorProps) {
       if (result.record) {
         setCurrentRecord(result.record)
         localStorage.removeItem(`draft-${date}`)
-        onSave?.() // 通知父组件刷新日历
+        onSave?.(result.record) // 通知父组件刷新日历和更新缓存
       } else {
         // 如果记录被删除（保存空内容），清空当前记录状态
         setCurrentRecord(null)
         localStorage.removeItem(`draft-${date}`)
-        onSave?.() // 通知父组件刷新日历
+        onSave?.(null) // 通知父组件刷新日历和清除缓存
       }
     } catch (error: any) {
       setError(error.message || '保存失败，请重试')

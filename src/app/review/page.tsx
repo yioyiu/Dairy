@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { SummaryCard } from './components/SummaryCard'
 import { DailyList } from './components/DailyList'
 import { Charts } from './components/Charts'
+import { YearCalendar } from './components/YearCalendar'
 import {
   getMonthlyRecordsForReview,
   generateMonthlyReview,
@@ -187,9 +188,7 @@ export default function ReviewPage() {
         {/* 图表和列表 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <Charts records={records} summary={summary} keywords={keywords} extractingKeywords={extractingKeywords} />
-          <div className="lg:col-span-1">
-            {/* 可以添加其他图表 */}
-          </div>
+          <YearCalendar currentYear={currentYear} />
         </div>
 
         {/* 每日摘要列表 */}

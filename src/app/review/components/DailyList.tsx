@@ -33,7 +33,7 @@ export function DailyList({ records, loading }: DailyListProps) {
 
   return (
     <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
-      <h2 className="text-2xl font-bold mb-4">📅 本月每日摘要</h2>
+      <h2 className="text-2xl font-bold mb-4">本月每日摘要</h2>
       <div className="space-y-3">
         {records.map((record) => {
           const date = new Date(record.date)

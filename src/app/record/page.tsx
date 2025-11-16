@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { getToday } from '@/lib/date'
 import { AuthButton } from '../components/AuthButton'
 import { Logo } from '../components/Logo'
+import { DailyRecord } from '@/types/record'
 
 export default function RecordPage() {
   const today = getToday()
@@ -14,14 +15,26 @@ export default function RecordPage() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1)
   const [refreshKey, setRefreshKey] = useState(0) // 用于触发日历刷新
+  const [recordsCache, setRecordsCache] = useState<Record<string, DailyRecord>>({}) // 缓存已加载的记录
 
   const handleDateSelect = (date: string) => {
     setSelectedDate(date)
   }
 
-  const handleRecordSave = () => {
+  const handleRecordSave = (record?: DailyRecord | null) => {
     // 保存后刷新日历
     setRefreshKey(prev => prev + 1)
+    // 如果保存了记录，更新缓存
+    if (record && record.date) {
+      setRecordsCache(prev => ({ ...prev, [record.date]: record }))
+    } else if (record === null && selectedDate) {
+      // 如果记录被删除，从缓存中移除
+      setRecordsCache(prev => {
+        const newCache = { ...prev }
+        delete newCache[selectedDate]
+        return newCache
+      })
+    }
   }
 
   const handleMonthChange = (delta: number) => {
@@ -106,6 +119,10 @@ export default function RecordPage() {
                   selectedDate={selectedDate}
                   onDateSelect={handleDateSelect}
                   refreshKey={refreshKey}
+                  onRecordsLoaded={(records) => {
+                    // 更新缓存
+                    setRecordsCache(prev => ({ ...prev, ...records }))
+                  }}
                 />
               </div>
             </div>
@@ -118,7 +135,11 @@ export default function RecordPage() {
                 日期：{selectedDate}
               </div>
               <div className="flex-1 min-h-0 overflow-visible">
-                <Editor date={selectedDate} onSave={handleRecordSave} />
+                <Editor 
+                  date={selectedDate} 
+                  onSave={handleRecordSave}
+                  cachedRecord={recordsCache[selectedDate] || null}
+                />
               </div>
             </div>
           </div>

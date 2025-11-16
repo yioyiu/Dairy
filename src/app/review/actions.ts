@@ -13,6 +13,54 @@ export async function getMonthlyRecordsForReview(
   return getMonthlyRecords(year, month)
 }
 
+/**
+ * 获取指定年份的所有记录
+ */
+export async function getYearRecords(year: number): Promise<DailyRecord[]> {
+  const supabase = createClient()
+  
+  // 先尝试获取 session
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  // 如果 session 不存在，再尝试 getUser
+  let user = session?.user
+  if (!user) {
+    const {
+      data: { user: fetchedUser },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !fetchedUser) {
+      throw new Error('未登录，请先登录')
+    }
+    user = fetchedUser
+  }
+
+  if (!user) {
+    throw new Error('未登录，请先登录')
+  }
+
+  // 计算年份的第一天和最后一天
+  const startDate = `${year}-01-01`
+  const endDate = `${year}-12-31`
+
+  const { data, error } = await supabase
+    .from('daily_records')
+    .select('*')
+    .eq('user_id', user.id)
+    .gte('date', startDate)
+    .lte('date', endDate)
+    .order('date', { ascending: true })
+
+  if (error) {
+    throw error
+  }
+
+  return (data || []) as DailyRecord[]
+}
+
 export async function generateMonthlyReview(
   year: number,
   month: number

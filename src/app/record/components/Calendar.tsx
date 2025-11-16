@@ -5,7 +5,6 @@ import { getMonthlyRecords } from '../actions'
 import { DailyRecord } from '@/types/record'
 import { getDaysInMonth, getFirstDayOfMonth, formatDate, isSameDay } from '@/lib/date'
 import { cn } from '@/lib/utils'
-import { RecordModal } from './RecordModal'
 
 interface CalendarProps {
   year: number
@@ -13,13 +12,12 @@ interface CalendarProps {
   selectedDate: string | null
   onDateSelect: (date: string) => void
   refreshKey?: number // 用于触发刷新
+  onRecordsLoaded?: (records: Record<string, DailyRecord>) => void // 记录加载完成后的回调
 }
 
-export function Calendar({ year, month, selectedDate, onDateSelect, refreshKey }: CalendarProps) {
+export function Calendar({ year, month, selectedDate, onDateSelect, refreshKey, onRecordsLoaded }: CalendarProps) {
   const [records, setRecords] = useState<Record<string, DailyRecord>>({})
   const [loading, setLoading] = useState(true)
-  const [modalRecord, setModalRecord] = useState<DailyRecord | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     async function loadRecords() {
@@ -37,6 +35,8 @@ export function Calendar({ year, month, selectedDate, onDateSelect, refreshKey }
           }
         })
         setRecords(recordsMap)
+        // 通知父组件记录已加载
+        onRecordsLoaded?.(recordsMap)
       } catch (error: any) {
         // 如果是认证错误，静默处理（不显示错误，因为用户可能正在登录）
         if (error?.message?.includes('未登录')) {
@@ -98,11 +98,6 @@ export function Calendar({ year, month, selectedDate, onDateSelect, refreshKey }
               onClick={() => {
                 // 总是更新选中的日期，这样右侧编辑器会切换到该日期
                 onDateSelect(dateStr)
-                // 如果该日期有记录，同时打开详情卡片
-                if (record) {
-                  setModalRecord(record)
-                  setIsModalOpen(true)
-                }
               }}
               className={cn(
                 'min-h-[70px] sm:min-h-[90px] lg:min-h-[110px] xl:min-h-[130px] p-1.5 sm:p-2 text-sm border rounded hover:bg-gray-100 transition-colors flex flex-col',
@@ -131,12 +126,6 @@ export function Calendar({ year, month, selectedDate, onDateSelect, refreshKey }
           )
         })}
       </div>
-
-      <RecordModal
-        record={modalRecord}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </div>
   )
 }

@@ -117,7 +117,7 @@ export function Charts({ records, summary, keywords: extractedKeywords, extracti
   if (extractingKeywords) {
     return (
       <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
-        <h2 className="text-2xl font-bold mb-4">🏷️ 主题词云</h2>
+        <h2 className="text-2xl font-bold mb-4">主题词云</h2>
         <p className="text-gray-500 text-center py-8">
           正在提取关键词...
         </p>
@@ -128,7 +128,7 @@ export function Charts({ records, summary, keywords: extractedKeywords, extracti
   if (keywords.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
-        <h2 className="text-2xl font-bold mb-4">🏷️ 主题词云</h2>
+        <h2 className="text-2xl font-bold mb-4">主题词云</h2>
         <p className="text-gray-500 text-center py-8">
           数据不足，无法生成词云
         </p>
@@ -138,8 +138,8 @@ export function Charts({ records, summary, keywords: extractedKeywords, extracti
 
   // 计算字体大小（基于频率）
   const maxCount = Math.max(...keywords.map((k) => k.count))
-  const minSize = 12
-  const maxSize = 32
+  const minSize = 10
+  const maxSize = 24
 
   // 定义颜色方案（根据频率使用不同颜色）
   const getColorScheme = (count: number, maxCount: number) => {
