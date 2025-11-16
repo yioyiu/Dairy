@@ -241,8 +241,8 @@ export async function updateSummary(date: string, summary: string | null) {
   }
 
   try {
-    const { data: record, error: updateError } = await supabase
-      .from('daily_records')
+    const { data: record, error: updateError } = await (supabase
+      .from('daily_records') as any)
       .update({ summary })
       .eq('user_id', user.id)
       .eq('date', date)
